@@ -1,0 +1,57 @@
+(define-syntax describe (syntax-rules (with quote returns)
+  [(_ function-name) '()]
+  [(_ function-name
+      (with argument-description
+            (quote argument) ...
+            (returns result))
+      further-clauses ...)
+   (begin
+     (make-test 'function-name
+                argument-description
+                '('argument ...)
+                result)
+     (describe function-name further-clauses ...))]))
+
+(define unit-tests '())
+
+(define (make-test function-name argument-description arguments expected)
+  (define (do-test index)
+    (print "----------------------------------------------------------------")
+    (print index "|" function-name argument-description)
+    (let ([expression (cons function-name arguments)])
+      (display expression)
+      (display " -> ")
+      (let ([actual (eval expression)])
+        (print actual)
+        (cond [(equal? actual expected)
+                (print "PASSED")
+                (print)]
+              [else
+                (print "expected" expected ", got" actual)
+                (print)
+                (error "FAIL")]))))
+  (set! unit-tests (cons do-test unit-tests)))
+
+(define (run-tests!)
+  (define (run-list list)
+    (if (equal? '() list)
+        '()
+        (begin
+          (run-list (cdr list))
+          ((car list) (list-length list)))))
+  (run-list unit-tests))
+
+(define (print . args)
+  (if (equal? '() args)
+      (display "\n")
+      (begin
+        (display (car args))
+        (display " ")
+        (apply print (cdr args)))))
+
+(define (list-length list)
+  (if (equal? '() list)
+      0
+      (+ (list-length (cdr list))
+         1)))
+
