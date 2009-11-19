@@ -2,6 +2,7 @@ require 'rubygems'
 require 'heist'
 
 runtime = Heist::Runtime.new(:except => ['library'])
+runtime.top_level.define('not') { |x| !x }
 
 begin
   runtime.run('test/support.scm')

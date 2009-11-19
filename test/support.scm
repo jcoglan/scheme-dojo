@@ -1,14 +1,12 @@
-(define-syntax describe (syntax-rules (with quote returns)
+(define-syntax describe (syntax-rules (with : =>)
   [(_ function-name) '()]
   [(_ function-name
-      (with argument-description
-            (quote argument) ...
-            (returns result))
+      (with argument-description (: argument ...) => result)
       further-clauses ...)
    (begin
      (make-test 'function-name
                 argument-description
-                '('argument ...)
+                `(,argument ...)
                 result)
      (describe function-name further-clauses ...))]))
 
@@ -18,18 +16,16 @@
   (define (do-test index)
     (print "----------------------------------------------------------------")
     (print index "|" function-name argument-description)
-    (let ([expression (cons function-name arguments)])
-      (display expression)
-      (display " -> ")
-      (let ([actual (eval expression)])
-        (print actual)
-        (cond [(equal? actual expected)
-                (print "PASSED")
-                (print)]
-              [else
-                (print "expected" expected ", got" actual)
-                (print)
-                (error "FAIL")]))))
+    (display (cons function-name arguments))
+    (display " => ")
+    (let* ([function (eval function-name)]
+           [actual (apply function arguments)])
+      (print actual)
+      (cond [(equal? actual expected)
+              (print "PASSED\n")]
+            [else
+              (print "expected" expected ", got" actual "\n")
+              (error "FAIL")])))
   (set! unit-tests (cons do-test unit-tests)))
 
 (define (run-tests!)
